@@ -1,9 +1,9 @@
 /vendor
 /node_modules
 /public/storage
+/.idea
 Homestead.yaml
 Homestead.json
 .env
 .env.*.php
 .env.php
-.idea/*
