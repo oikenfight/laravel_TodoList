@@ -1,9 +1,29 @@
+# Composer
 /vendor
+
+# npm
 /node_modules
-/public/storage
-/.idea
+
+# Laravel
+.env
+
+# PHP CS Fixer
+.php_cs.cache
+
+# Mac
+.DS_Store
+
+# PhpStorm
+.idea/
+
+# Laravel Debugbar
+storage/debugbar
+
+# Homestead
 Homestead.yaml
 Homestead.json
-.env
-.env.*.php
-.env.php
+
+# Gulp
+public/build
+public/css
+public/js
