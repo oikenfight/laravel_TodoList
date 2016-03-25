@@ -6,7 +6,7 @@
 //    $metadata->page_description = 'Laravel で作るサンプルアプリケーション';
 ?>
 
-@extends('_layout.default')
+@extends('layouts.app')
 
 {{-- インラインのCSSを記述する--}}
 @section('inline-style')
