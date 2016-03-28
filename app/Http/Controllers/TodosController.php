@@ -40,13 +40,6 @@ class TodosController extends Controller
     {
         $user = \Auth::user();
 
-//        // 未完了リストを取得
-//        $incompleteTodos = Todo::where('user_id', $user['id'])->whereStatus(Todo::STATUS_INCOMPLETE)->orderBy('updated_at', 'desc')->get();
-//        // 完了リストを取得する
-//        $completedTodos = Todo::where('user_id', $user['id'])->whereStatus(Todo::STATUS_COMPLETED)->orderBy('completed_at', 'desc')->get();
-//        // 削除済みリストを取得する
-//        $trashedTodos = Todo::where('user_id', $user['id'])->onlyTrashed()->get();
-
         $incompleteTodos = Todo::getTodos($user['id'], Todo::STATUS_INCOMPLETE);
         $completedTodos = Todo::getTodos($user['id'], Todo::STATUS_COMPLETED);
         $trashedTodos = Todo::getTrashed($user['id']);
@@ -69,18 +62,15 @@ class TodosController extends Controller
     public function store()
     {
         $user = \Auth::user();
+        // フォームの入力データを項目名を指定して追加する
+        $input = Input::only(['title']);
 
         // バリデーションルールの定義
         $rules = [
             'title' => 'required|min:3|max:255', // titleは3文字以上255文字以下
         ];
-
-        // フォームの入力データを項目名を指定して追加する
-        $input = Input::only(['title']);
-
         // バリデーターを生成する
         $validator = Validator::make($input, $rules);
-
         // バリデーションを行う
         if ($validator->fails()) {
             // バリデーションに失敗したら、バリデーションのエラー情報とフォームの入力値を追加してリストページにリダイレクトする
@@ -136,7 +126,6 @@ class TodosController extends Controller
             ]);
         }
 
-        // データを更新する
         $todo->save();
 
         // index にリダイレクトする
