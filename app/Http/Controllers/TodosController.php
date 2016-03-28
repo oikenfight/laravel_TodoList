@@ -25,23 +25,32 @@ class TodosController extends Controller
      * コンストラクタ
      * @return void
      */
-    public function __construct(Todo $todo)
+    public function __construct(Todo $todo, \App\User $user)
     {
         $this->todo = $todo;
+        $this->user = $user;
     }
 
     /**
      * Todoリストページを表示する
-     * @retur void
+     * @param Request $request
+     * @return array
      */
     public function index()
     {
-        // 未完了リストを取得
-        $incompleteTodos = Todo::whereStatus(Todo::STATUS_INCOMPLETE)->orderBy('updated_at', 'desc')->get();
-        // 完了リストを取得する
-        $completedTodos = Todo::whereStatus(Todo::STATUS_COMPLETED)->orderBy('completed_at', 'desc')->get();
-        // 削除済みリストを取得する
-        $trashedTodos = Todo::onlyTrashed()->get();
+        $user = \Auth::user();
+
+//        // 未完了リストを取得
+//        $incompleteTodos = Todo::where('user_id', $user['id'])->whereStatus(Todo::STATUS_INCOMPLETE)->orderBy('updated_at', 'desc')->get();
+//        // 完了リストを取得する
+//        $completedTodos = Todo::where('user_id', $user['id'])->whereStatus(Todo::STATUS_COMPLETED)->orderBy('completed_at', 'desc')->get();
+//        // 削除済みリストを取得する
+//        $trashedTodos = Todo::where('user_id', $user['id'])->onlyTrashed()->get();
+
+        $incompleteTodos = Todo::getTodos($user['id'], Todo::STATUS_INCOMPLETE);
+        $completedTodos = Todo::getTodos($user['id'], Todo::STATUS_COMPLETED);
+        $trashedTodos = Todo::getTrashed($user['id']);
+
 
         // viewを生成する
         // MEMO 引数のための配列を生成するとき, complete()関数を使っても良い
@@ -52,12 +61,15 @@ class TodosController extends Controller
         ]);
     }
 
+
     /**
      * 新規Todoを追加する。
      * @retuen void
      */
     public function store()
     {
+        $user = \Auth::user();
+
         // バリデーションルールの定義
         $rules = [
             'title' => 'required|min:3|max:255', // titleは3文字以上255文字以下
@@ -79,6 +91,7 @@ class TodosController extends Controller
         Todo::create([
             'title' => $input['title'],
             'status' => Todo::STATUS_INCOMPLETE,
+            'user_id' => $user['id'],
         ]);
 
         // index にリダイレクトする
@@ -88,6 +101,7 @@ class TodosController extends Controller
 
     public function update($id)
     {
+        $user = \Auth::user();
         $todo = Todo::find($id);
 
         // バリデーションルールの定義
@@ -191,5 +205,4 @@ class TodosController extends Controller
         // indexにリダイレクトする
         return Redirect::route('todos.index');
     }
-
 }

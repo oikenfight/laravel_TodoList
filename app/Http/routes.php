@@ -26,7 +26,7 @@
 |
 */
 
-Route::group(['middleware' => ['web']], function () {
+Route::group(['middleware' => ['web', 'auth']], function () {
     Route::group(['prefix' => 'todos'], function() {
         Route::get('', [
             'as' => 'todos.index',
