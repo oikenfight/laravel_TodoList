@@ -40,9 +40,9 @@ class TodosController extends Controller
     {
         $user = \Auth::user();
 
-        $incompleteTodos = Todo::getTodos($user['id'], Todo::STATUS_INCOMPLETE);
-        $completedTodos = Todo::getTodos($user['id'], Todo::STATUS_COMPLETED);
-        $trashedTodos = Todo::getTrashed($user['id']);
+        $incompleteTodos = $this->todo->getTodos($user['id'], Todo::STATUS_INCOMPLETE);
+        $completedTodos = $this->todo->getTodos($user['id'], Todo::STATUS_COMPLETED);
+        $trashedTodos = $this->todo->getTrashed($user['id']);
 
 
         // viewを生成する
@@ -78,7 +78,7 @@ class TodosController extends Controller
         }
 
         // Todoデータを作成する
-        Todo::create([
+        $this->todo->create([
             'title' => $input['title'],
             'status' => Todo::STATUS_INCOMPLETE,
             'user_id' => $user['id'],
@@ -92,7 +92,7 @@ class TodosController extends Controller
     public function update($id)
     {
         $user = \Auth::user();
-        $todo = Todo::find($id);
+        $todo = $this->todo->find($id);
 
         // バリデーションルールの定義
         $rules = [
@@ -136,7 +136,7 @@ class TodosController extends Controller
     public function ajaxUpdateTitle($id)
     {
         // Todoオブジェクトを所得する
-        $todo = Todo::find($id);
+        $todo = $this->todo->find($id);
         // バリデーションルールの定義
         $rules = [
             "title" => 'requred|min:3|max:255',
@@ -171,7 +171,7 @@ class TodosController extends Controller
     public function delete($id)
     {
         // Todoオブジェクトを取得する
-        $todo = Todo::find($id);
+        $todo = $this->todo->find($id);
         // データを削除する
         $todo->delete();
 
@@ -186,7 +186,7 @@ class TodosController extends Controller
     public function restore($id)
     {
         // 削除されたTodoオブジェクトを取得する
-        $todo = Todo::onlyTrashed()->find($id);
+        $todo = $this->todo->onlyTrashed()->find($id);
 
         // データを復元する
         $todo->restore();
