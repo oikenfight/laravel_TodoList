@@ -89,9 +89,7 @@ class TodosController extends Controller
 
     public function update($id)
     {
-        $user = \Auth::user();
         $todo = $this->todo->find($id);
-        \Log::debug($todo);
 
         // 入力データを取得する
         $input = Input::only(['status']);
@@ -110,7 +108,7 @@ class TodosController extends Controller
         // statusが指定されていたら
         if ($input['status'] !== null) {
             // statusとcompleted_atカラムを更新する
-            $todo->fill([
+            $todo = $todo->fill([
                 'status' => $input['status'],
                 'completed_at' => $input['status'] == Todo::STATUS_COMPLETED ? new DateTime : null,
             ]);
@@ -144,7 +142,7 @@ class TodosController extends Controller
         }
 
         // titleカラムを更新する
-        $todo->fill([
+        $todo = $todo->fill([
             'title' => $input['title'],
         ]);
         // データを更新する

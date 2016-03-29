@@ -118,21 +118,95 @@ class TodoTest extends \TestCase
 
     public function testSuccessUpdate()
     {
+        $mockInstanceForFillMethod = m::mock(Todo::class);
+        $mockInstanceForSaveMethod = m::mock(Todo::class);
+
         $this->todoMock
             ->shouldReceive('find')
             ->with(1)
             ->once()
-            ->andReturn(new Todo([
-                'id' => 1,
-                'status' => 1,
-                'completed_at' => null,
-            ]));
+            ->andReturn($mockInstanceForFillMethod);
 
+        $mockInstanceForFillMethod
+            ->shouldReceive('fill')
+            ->with([
+                'status' => 2,
+                'completed_at' => new DateTime,
+            ])
+            ->once()
+            ->andReturn($mockInstanceForSaveMethod);
 
+        $mockInstanceForSaveMethod
+            ->shouldReceive('save')
+            ->withNoArgs()
+            ->once();
 
         $this->call('POST', '/todos/1/update', ['status' => 2]);
     }
 
+    public function testSuccessAjaxUpdateTitle()
+    {
+        $mockInstanceForFillMethod = m::mock(Todo::class);
+        $mockInstanceForSaveMethod = m::mock(Todo::class);
+
+        $this->todoMock
+            ->shouldReceive('find')
+            ->with(1)
+            ->once()
+            ->andReturn($mockInstanceForFillMethod);
+
+        $mockInstanceForFillMethod
+            ->shouldReceive('fill')
+            ->with(['title' => 'hoge'])
+            ->once()
+            ->andReturn($mockInstanceForSaveMethod);
+
+        $mockInstanceForSaveMethod
+            ->shouldReceive('save')
+            ->withNoArgs()
+            ->once();
+
+        $this->call('PUT', 'todos/1/title', ['title' => 'hoge']);
+    }
+
+    public function testErrorAjaxUpdateTitle()
+    {
+        $mockInstanceForErrorValidation = m::mock(Todo::class);
+        $this->todoMock
+            ->shouldReceive('find')
+            ->with(1)
+            ->once()
+            ->andReturn($mockInstanceForErrorValidation);
+
+        $mockInstanceForErrorValidation
+            ->shouldReceive('fill')
+            ->with([])
+            ->never();
+
+        $mockInstanceForErrorValidation
+            ->shouldReceive('save')
+            ->withNoArgs()
+            ->never();
+
+        $this->call('PUT', 'todos/1/title', ['title' => 'NG']);
+    }
+
+    public function testDelete()
+    {
+        $mockInstanceForDeleteMethod = m::mock(Todo::class);
+        $this->todoMock
+            ->shouldReceive('find')
+            ->with(1)
+            ->once()
+            ->andReturn($mockInstanceForDeleteMethod);
+
+        $mockInstanceForDeleteMethod
+            ->shouldReceive('delete')
+            ->withNoArgs()
+            ->once();
+
+        $this->call('POST', 'todos/1/delete');
+    }
 
 //    use DatabaseMigrations;
 //
