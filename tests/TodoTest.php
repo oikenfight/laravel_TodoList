@@ -12,28 +12,14 @@ use \Mockery as m;
 
 class TodoTest extends \TestCase
 {
-//    use DatabaseMigrations;
-
     // ミドルウェアを通さない
     // ここではログインを省略するのが目的
     use WithoutMiddleware;
-
-
-    /**
-     * @var \App\Todo
-     */
-//    protected $todo;
 
     /**
      * @var \App\Todo
      */
     protected $todoMock;
-
-    /**
-     * @var App\Http\Controllers\TodosController;
-     */
-    protected $controllerMock;
-
 
 
     public function setUp()
@@ -50,16 +36,13 @@ class TodoTest extends \TestCase
         m::close();
     }
 
-    /**
-     *
-     */
+
     public function testIndex()
     {
-        $user = new stdClass;
-        $user->id = 1;
+        $user = new User(['id' => 1]);
 
         // user id をモックして返す
-//        \Auth::shouldReceive('check')->andReturn(true);
+        // \Auth::shouldReceive('check')->andReturn(true);
         \Auth::shouldReceive('user')
             ->withNoArgs()
             ->once()
@@ -80,16 +63,6 @@ class TodoTest extends \TestCase
             ->with($user->id)
             ->andReturn('trashedTodo');
 
-//        $viewFactory = m::mock(Illuminate\Contracts\View\Factory::class);
-//        App::instance(Illuminate\Contracts\View\Factory::class, $viewFactory);
-//        $viewFactory->shouldReceive('make')
-//            ->with('todos.index', [
-//                'incompleteTodos' => 'incompleteTodo',
-//                'completedTodos' => 'completedTodo',
-//                'trashedTodos' => 'trashedTodo'
-//            ], [])
-//            ->andReturn(null);
-
         // User無しで動作しているため、実際にviewに渡らないようにモックする
         // with の第三引数は\Viewがデフォルトで空の配列を返すため
         \View::shouldReceive('make')
@@ -100,6 +73,11 @@ class TodoTest extends \TestCase
             ], []);
 
         $this->call('GET', '/todos');
+    }
+
+    public function testStore()
+    {
+        
     }
 
 

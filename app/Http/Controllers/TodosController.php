@@ -40,23 +40,9 @@ class TodosController extends Controller
         $user = \Auth::user();
 
         // viewを生成する
-        // MEMO 引数のための配列を生成するとき, complete()関数を使っても良い
-//        return view('todos.index', [
-//            'incompleteTodos' => $this->todo->getTodos($user->id, Todo::STATUS_INCOMPLETE),
-//            'completedTodos' => $this->todo->getTodos($user->id, Todo::STATUS_COMPLETED),
-//            'trashedTodos' => $this->todo->getTrashed($user->id),
-//        ]);
-
         $incompletedTodos = $this->todo->getTodos($user->id, Todo::STATUS_INCOMPLETE);
         $completedTodos = $this->todo->getTodos($user->id, Todo::STATUS_COMPLETED);
         $trashedTodos = $this->todo->getTrashed($user->id);
-
-//        $view = view('todos.index', [
-//            'incompleteTodos' => $incompletedTodos,
-//            'completedTodos' => $completedTodos,
-//            'trashedTodos' => $trashedTodos,
-//        ]);
-//        \Log::debug(get_class($view));
 
         return view('todos.index', [
             'incompleteTodos' => $incompletedTodos,
