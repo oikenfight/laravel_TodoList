@@ -66,12 +66,13 @@ class TodosController extends Controller
         $rules = [
             'title' => 'required|min:3|max:255', // titleは3文字以上255文字以下
         ];
+
         // バリデーターを生成する
         $validator = Validator::make($input, $rules);
         // バリデーションを行う
         if ($validator->fails()) {
             // バリデーションに失敗したら、バリデーションのエラー情報とフォームの入力値を追加してリストページにリダイレクトする
-            return Redirect::route('todos.index')->withErrors($validator->errors())->withInput();
+            return Redirect::route('todos.index')->withErrors($validator)->withInput();
         }
 
         // Todoデータを作成する
@@ -90,30 +91,22 @@ class TodosController extends Controller
     {
         $user = \Auth::user();
         $todo = $this->todo->find($id);
+        \Log::debug($todo);
+
+        // 入力データを取得する
+        $input = Input::only(['status']);
 
         // バリデーションルールの定義
         $rules = [
-            "title" => 'requred|min:3|max:255',
             "status" => ['required', 'numeric', 'min:1', 'max:2'],
-            'dummy' => '', // ルールを指定しないとオプション扱いにできる
         ];
-
-        // 入力データを取得する
-        $input = Input::only(array_keys($rules));
 
         // バリデーションを実行する
         $validator = Validator::make($input, $rules);
-        if ($validator->failed()) {
+        if ($validator->fails()) {
             return Redirect::route('todos.index')->withError($validator)->withInput();
         }
 
-        // title が指定されていたら
-        if ($input['title'] !== null) {
-            // titleカラムを更新する
-            $todo->fill([
-                'title' => $input['title'],
-            ]);
-        }
         // statusが指定されていたら
         if ($input['status'] !== null) {
             // statusとcompleted_atカラムを更新する
@@ -136,18 +129,18 @@ class TodosController extends Controller
         $todo = $this->todo->find($id);
         // バリデーションルールの定義
         $rules = [
-            "title" => 'requred|min:3|max:255',
+            "title" => 'required|min:3|max:255',
         ];
         // 入力データを取得する
         $input = Input::only(['title']);
         // バリデーションを実行する
         $validator = Validator::make($input, $rules);
-        if ($validator->failed()) {
+        if ($validator->fails()) {
             // Ajax レスポンスを返す
-            return Response::json([
+            return \Response::json([
                 'result' => 'NG',
                 'errors' => $validator->errors()
-            , 400]);
+            ], 400);
         }
 
         // titleカラムを更新する
