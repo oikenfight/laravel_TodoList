@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Validator;
 
 /**
  * App\Todo
@@ -67,4 +68,21 @@ class Todo extends Model
      * @@var array
      */
     protected $data = ['complete_at', 'deleted_at'];
+
+
+    public static function getTodos($userId, $status)
+    {
+        return self::where('user_id', $userId)
+            ->where('status', $status)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+    }
+
+    public static function getTrashed($userId)
+    {
+        return self::where('user_id', $userId)
+            ->onlyTrashed()
+            ->get();
+    }
+
 }

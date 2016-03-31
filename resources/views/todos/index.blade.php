@@ -87,10 +87,10 @@
                 editBlock.addClass('hidden');
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
-                if (XMLRequest.status == 400) {
+                if (XMLHttpRequest.status == 400) {
                     response = JSON.parse(XMLHttpRequest.responseText);
                     for (var field in response.errors) {
-                        alert(response.error[field]);
+                        alert(response.errors[field]);
                     }
                 }
                 else {

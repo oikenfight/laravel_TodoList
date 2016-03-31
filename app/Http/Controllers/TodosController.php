@@ -32,25 +32,25 @@ class TodosController extends Controller
 
     /**
      * Todoリストページを表示する
-     * @retur void
+     * @param Request $request
+     * @return array
      */
     public function index()
     {
-        // 未完了リストを取得
-        $incompleteTodos = Todo::whereStatus(Todo::STATUS_INCOMPLETE)->orderBy('updated_at', 'desc')->get();
-        // 完了リストを取得する
-        $completedTodos = Todo::whereStatus(Todo::STATUS_COMPLETED)->orderBy('completed_at', 'desc')->get();
-        // 削除済みリストを取得する
-        $trashedTodos = Todo::onlyTrashed()->get();
+        $user = \Auth::user();
 
         // viewを生成する
-        // MEMO 引数のための配列を生成するとき, complete()関数を使っても良い
+        $incompletedTodos = $this->todo->getTodos($user->id, Todo::STATUS_INCOMPLETE);
+        $completedTodos = $this->todo->getTodos($user->id, Todo::STATUS_COMPLETED);
+        $trashedTodos = $this->todo->getTrashed($user->id);
+
         return view('todos.index', [
-            'incompleteTodos' => $incompleteTodos,
+            'incompleteTodos' => $incompletedTodos,
             'completedTodos' => $completedTodos,
             'trashedTodos' => $trashedTodos,
         ]);
     }
+
 
     /**
      * 新規Todoを追加する。
@@ -58,27 +58,28 @@ class TodosController extends Controller
      */
     public function store()
     {
+        $user = \Auth::user();
+        // フォームの入力データを項目名を指定して追加する
+        $input = Input::only(['title']);
+
         // バリデーションルールの定義
         $rules = [
             'title' => 'required|min:3|max:255', // titleは3文字以上255文字以下
         ];
 
-        // フォームの入力データを項目名を指定して追加する
-        $input = Input::only(['title']);
-
         // バリデーターを生成する
         $validator = Validator::make($input, $rules);
-
         // バリデーションを行う
         if ($validator->fails()) {
             // バリデーションに失敗したら、バリデーションのエラー情報とフォームの入力値を追加してリストページにリダイレクトする
-            return Redirect::route('todos.index')->withErrors($validator->errors())->withInput();
+            return Redirect::route('todos.index')->withErrors($validator)->withInput();
         }
 
         // Todoデータを作成する
-        Todo::create([
+        $this->todo->create([
             'title' => $input['title'],
             'status' => Todo::STATUS_INCOMPLETE,
+            'user_id' => $user['id'],
         ]);
 
         // index にリダイレクトする
@@ -88,41 +89,31 @@ class TodosController extends Controller
 
     public function update($id)
     {
-        $todo = Todo::find($id);
+        $todo = $this->todo->find($id);
+
+        // 入力データを取得する
+        $input = Input::only(['status']);
 
         // バリデーションルールの定義
         $rules = [
-            "title" => 'requred|min:3|max:255',
             "status" => ['required', 'numeric', 'min:1', 'max:2'],
-            'dummy' => '', // ルールを指定しないとオプション扱いにできる
         ];
-
-        // 入力データを取得する
-        $input = Input::only(array_keys($rules));
 
         // バリデーションを実行する
         $validator = Validator::make($input, $rules);
-        if ($validator->failed()) {
+        if ($validator->fails()) {
             return Redirect::route('todos.index')->withError($validator)->withInput();
         }
 
-        // title が指定されていたら
-        if ($input['title'] !== null) {
-            // titleカラムを更新する
-            $todo->fill([
-                'title' => $input['title'],
-            ]);
-        }
         // statusが指定されていたら
         if ($input['status'] !== null) {
             // statusとcompleted_atカラムを更新する
-            $todo->fill([
+            $todo = $todo->fill([
                 'status' => $input['status'],
                 'completed_at' => $input['status'] == Todo::STATUS_COMPLETED ? new DateTime : null,
             ]);
         }
 
-        // データを更新する
         $todo->save();
 
         // index にリダイレクトする
@@ -133,25 +124,25 @@ class TodosController extends Controller
     public function ajaxUpdateTitle($id)
     {
         // Todoオブジェクトを所得する
-        $todo = Todo::find($id);
+        $todo = $this->todo->find($id);
         // バリデーションルールの定義
         $rules = [
-            "title" => 'requred|min:3|max:255',
+            "title" => 'required|min:3|max:255',
         ];
         // 入力データを取得する
         $input = Input::only(['title']);
         // バリデーションを実行する
         $validator = Validator::make($input, $rules);
-        if ($validator->failed()) {
+        if ($validator->fails()) {
             // Ajax レスポンスを返す
-            return Response::json([
+            return \Response::json([
                 'result' => 'NG',
                 'errors' => $validator->errors()
-            , 400]);
+            ], 400);
         }
 
         // titleカラムを更新する
-        $todo->fill([
+        $todo = $todo->fill([
             'title' => $input['title'],
         ]);
         // データを更新する
@@ -168,7 +159,7 @@ class TodosController extends Controller
     public function delete($id)
     {
         // Todoオブジェクトを取得する
-        $todo = Todo::find($id);
+        $todo = $this->todo->find($id);
         // データを削除する
         $todo->delete();
 
@@ -183,7 +174,7 @@ class TodosController extends Controller
     public function restore($id)
     {
         // 削除されたTodoオブジェクトを取得する
-        $todo = Todo::onlyTrashed()->find($id);
+        $todo = $this->todo->onlyTrashed()->find($id);
 
         // データを復元する
         $todo->restore();
@@ -191,5 +182,4 @@ class TodosController extends Controller
         // indexにリダイレクトする
         return Redirect::route('todos.index');
     }
-
 }
