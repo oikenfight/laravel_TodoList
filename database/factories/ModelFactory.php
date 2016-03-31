@@ -28,5 +28,6 @@ $factory->define(App\Todo::class, function (Faker\Generator $faker) {
         'created_at' => new DateTime(),
         'updated_at' => new DateTime(),
         'deleted_at' => '',
+        'user_id' => $faker->randomDigit(),
     ];
 });
