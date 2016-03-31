@@ -28,6 +28,7 @@ class TodosController extends Controller
     public function __construct(Todo $todo)
     {
         $this->todo = $todo;
+        $this->user = \Auth::user();
     }
 
     /**
@@ -37,12 +38,10 @@ class TodosController extends Controller
      */
     public function index()
     {
-        $user = \Auth::user();
-
         // viewを生成する
-        $incompletedTodos = $this->todo->getTodos($user->id, Todo::STATUS_INCOMPLETE);
-        $completedTodos = $this->todo->getTodos($user->id, Todo::STATUS_COMPLETED);
-        $trashedTodos = $this->todo->getTrashed($user->id);
+        $incompletedTodos = $this->todo->getTodos($this->user->id, Todo::STATUS_INCOMPLETE);
+        $completedTodos = $this->todo->getTodos($this->user->id, Todo::STATUS_COMPLETED);
+        $trashedTodos = $this->todo->getTrashed($this->user->id);
 
         return view('todos.index', [
             'incompleteTodos' => $incompletedTodos,
@@ -58,7 +57,6 @@ class TodosController extends Controller
      */
     public function store()
     {
-        $user = \Auth::user();
         // フォームの入力データを項目名を指定して追加する
         $input = Input::only(['title']);
 
@@ -79,7 +77,7 @@ class TodosController extends Controller
         $this->todo->create([
             'title' => $input['title'],
             'status' => Todo::STATUS_INCOMPLETE,
-            'user_id' => $user['id'],
+            'user_id' => $this->user['id'],
         ]);
 
         // index にリダイレクトする
