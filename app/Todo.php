@@ -85,4 +85,15 @@ class Todo extends Model
             ->get();
     }
 
+    public static function getTodoById($id, $userId)
+    {
+        return self::find($id)
+            ->where('user_id', $userId);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }
