@@ -124,8 +124,11 @@ class TodosController extends Controller
 
     public function ajaxUpdateTitle($id)
     {
-        // Todoオブジェクトを所得する
         $todo = $this->todo->find($id);
+        if ($todo->user_id !== $this->user->id) {
+            return Redirect::route('todos.index');
+        }
+
         $input = Input::only(['title']);
 
         $rules = [
