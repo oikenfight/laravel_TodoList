@@ -24,10 +24,10 @@ $factory->define(App\Todo::class, function (Faker\Generator $faker) {
     return [
         'title' => $faker->sentence(10),
         'status' =>$faker->numberBetween(1 ,2),
-        'completed_at' => '',
+        'completed_at' => null,
         'created_at' => new DateTime(),
         'updated_at' => new DateTime(),
-        'deleted_at' => '',
-        'user_id' => $faker->randomDigit(),
+        'deleted_at' => null,
+        'user_id' => null
     ];
 });

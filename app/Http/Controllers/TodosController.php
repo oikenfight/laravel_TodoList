@@ -25,9 +25,10 @@ class TodosController extends Controller
      * コンストラクタ
      * @return void
      */
-    public function __construct(Todo $todo)
+    public function __construct(Todo $todo, Request $request)
     {
         $this->todo = $todo;
+        $this->user = \Auth::user();
     }
 
     /**
@@ -37,12 +38,10 @@ class TodosController extends Controller
      */
     public function index()
     {
-        $user = \Auth::user();
-
         // viewを生成する
-        $incompletedTodos = $this->todo->getTodos($user->id, Todo::STATUS_INCOMPLETE);
-        $completedTodos = $this->todo->getTodos($user->id, Todo::STATUS_COMPLETED);
-        $trashedTodos = $this->todo->getTrashed($user->id);
+        $incompletedTodos = $this->todo->getTodos($this->user->id, Todo::STATUS_INCOMPLETE);
+        $completedTodos = $this->todo->getTodos($this->user->id, Todo::STATUS_COMPLETED);
+        $trashedTodos = $this->todo->getTrashed($this->user->id);
 
         return view('todos.index', [
             'incompleteTodos' => $incompletedTodos,
@@ -58,7 +57,6 @@ class TodosController extends Controller
      */
     public function store()
     {
-        $user = \Auth::user();
         // フォームの入力データを項目名を指定して追加する
         $input = Input::only(['title']);
 
@@ -79,7 +77,7 @@ class TodosController extends Controller
         $this->todo->create([
             'title' => $input['title'],
             'status' => Todo::STATUS_INCOMPLETE,
-            'user_id' => $user['id'],
+            'user_id' => $this->user['id'],
         ]);
 
         // index にリダイレクトする
@@ -90,6 +88,9 @@ class TodosController extends Controller
     public function update($id)
     {
         $todo = $this->todo->find($id);
+        if ($todo->user_id !== $this->user->id) {
+            return Redirect::route('todos.index');
+        }
 
         // 入力データを取得する
         $input = Input::only(['status']);
@@ -98,7 +99,6 @@ class TodosController extends Controller
         $rules = [
             "status" => ['required', 'numeric', 'min:1', 'max:2'],
         ];
-
         // バリデーションを実行する
         $validator = Validator::make($input, $rules);
         if ($validator->fails()) {
@@ -118,20 +118,22 @@ class TodosController extends Controller
 
         // index にリダイレクトする
         return Redirect::route('todos.index');
+
     }
 
 
     public function ajaxUpdateTitle($id)
     {
-        // Todoオブジェクトを所得する
         $todo = $this->todo->find($id);
-        // バリデーションルールの定義
+        if ($todo->user_id !== $this->user->id) {
+            return Redirect::route('todos.index');
+        }
+
+        $input = Input::only(['title']);
+
         $rules = [
             "title" => 'required|min:3|max:255',
         ];
-        // 入力データを取得する
-        $input = Input::only(['title']);
-        // バリデーションを実行する
         $validator = Validator::make($input, $rules);
         if ($validator->fails()) {
             // Ajax レスポンスを返す
@@ -145,7 +147,6 @@ class TodosController extends Controller
         $todo = $todo->fill([
             'title' => $input['title'],
         ]);
-        // データを更新する
         $todo->save();
 
         // Ajaxレスポンスを返す
@@ -158,12 +159,13 @@ class TodosController extends Controller
      */
     public function delete($id)
     {
-        // Todoオブジェクトを取得する
         $todo = $this->todo->find($id);
-        // データを削除する
-        $todo->delete();
+        if ($todo->user_id !== $this->user->id) {
+            // セッションにメッセージ 「権限ないよ！！」
+            return Redirect::route('todos.index');
+        }
 
-        // indexにリダイレクトする
+        $todo->delete();
         return Redirect::route('todos.index');
     }
 
