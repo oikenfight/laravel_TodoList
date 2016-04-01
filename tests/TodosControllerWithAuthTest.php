@@ -42,8 +42,6 @@ class TodosControllerWithAuthTest extends TestCase
 
     public function testDeleteUsersTodo()
     {
-        DB::enableQueryLog();
-
         // user0 が認証されている
         $this->be($this->users[0]);
         $authenticatedUser = $this->users[0];
@@ -64,6 +62,40 @@ class TodosControllerWithAuthTest extends TestCase
 
         $this->call('POST', "todos/$otherUserTodo->id/delete");
         $this->assertEquals(1, Todo::count());
+    }
+
+    public function testUpdateUserTodo()
+    {
+        $this->be($this->users[0]);
+        $authenticatedUser = $this->users[0];
+        $authenticatedUserTodo = factory(Todo::class)->create([
+            'user_id' => $authenticatedUser->id,
+            'status' => Todo::STATUS_INCOMPLETE,
+        ]);
+
+        $this->call('POST', "/todos/$authenticatedUserTodo->id/update", ['status' => Todo::STATUS_COMPLETED]);
+        $this->assertEquals(Todo::STATUS_COMPLETED, Todo::find($authenticatedUserTodo->id)->status);
+    }
+
+    public function testNotUpdateUserTodo()
+    {
+        $this->be($this->users[0]);
+        $otherUser = $this->users[1];
+        $otherUserTodo = factory(Todo::class)->create([
+            'user_id' => $otherUser->id,
+            'status' => Todo::STATUS_INCOMPLETE,
+        ]);
+
+        $this->call('POST', "/todos/$otherUserTodo->id/update", ['status' => Todo::STATUS_COMPLETED]);
+        $this->assertEquals(Todo::STATUS_INCOMPLETE, Todo::find($otherUserTodo->id)->status);
+    }
+
+    public function testAjaxUpdateTitle()
+    {
+        $this->be($this->users[0]);
+        $authenticatedUser = $this->users[0];
+        $authenticatedUserTodo = factory(Todo::class)->create(['user_id' => $authenticatedUser->id]);
+
     }
 
 }

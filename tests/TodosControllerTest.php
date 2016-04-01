@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Contracts\View\Factory;
 use App\Todo;
 use App\User;
-use App\Http\Controllers\TodosController;
 use \Mockery as m;
 
 
@@ -119,6 +118,10 @@ class TodosControllerTest extends \TestCase
         $mockInstanceForFillMethod = m::mock(Todo::class);
         $mockInstanceForSaveMethod = m::mock(Todo::class);
 
+        $mockInstanceForFillMethod
+            ->shouldReceive('getAttribute')
+            ->andReturn(1);
+
         $this->todoMock
             ->shouldReceive('find')
             ->with(1)
@@ -192,6 +195,11 @@ class TodosControllerTest extends \TestCase
     public function testDelete()
     {
         $mockInstanceForDeleteMethod = m::mock(Todo::class);
+
+        $mockInstanceForDeleteMethod
+            ->shouldReceive('getAttribute')
+            ->andReturn(1);
+
         $this->todoMock
             ->shouldReceive('find')
             ->with(1)
@@ -205,71 +213,5 @@ class TodosControllerTest extends \TestCase
 
         $this->call('POST', 'todos/1/delete');
     }
-
-//    use DatabaseMigrations;
-//
-//    public function testGetIncompleteTodos()
-//    {
-//        $this->call('GET', '/todos');
-//        factory(App\Todo::class)->create(['status' => 1]);
-//        $incompleteTodo = \App\Todo::all();
-//
-//        $this->assertViewHas('incompleteTodos', $incompleteTodo);
-//    }
-//
-//    public function testGetCompletedTodos()
-//    {
-//        $this->visit('/todos');
-//        factory(\App\Todo::class)->create(['status' => 2]);
-//        $completedTodo = \App\Todo::all();
-//
-//        $this->assertViewHas('completedTodos', $completedTodo);
-//    }
-//
-//    public function testGetTrashedTodos()
-//    {
-//        $this->visit('/todos');
-//        factory(\App\Todo::class)->create(['deleted_at' => new DateTime()]);
-//        $trashedTodo = \App\Todo::all();
-//
-//        $this->assertViewHas('trashedTodos', $trashedTodo);
-//    }
-//
-//
-//    public function testCreate()
-//    {
-//        $todo = factory(App\Todo::class)->make(['status' => 1]);
-//
-//        $this->visit('/todos')
-//            ->type($todo->title, 'title')
-//            ->press('追加');
-//
-//        $this->seeInDatabase('todos', [
-//            'title' => $todo->title,
-//            'status' => $todo->status,
-//            'created_at' => $todo->created_at,
-//            'updated_at' => $todo->updated_at,
-//        ]);
-//    }
-//
-//    public function testDelete()
-//    {
-////        $todo = factory(\App\Todo::class)->create(['title' => 'hoge']);
-//        $todo = \App\Todo::create([
-//            'title' => 'title',
-//            'status' => 1,
-//        ]);
-//        if (\App\Todo::count() != 1) {
-//            $this->assertFalse('no data');
-//        }
-//
-//        $this->route('POST', 'todos.delete', ['id' => $todo->id])
-//            ->isRedirection();
-//
-//        if (\App\Todo::count() != 0) {
-//            $this->assertFalse('don`t delete data');
-//        }
-//
-//    }
 
 }
